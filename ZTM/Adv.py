@@ -5,7 +5,7 @@ import os
 import time
 
 # === Configuration ===
-LINE_NUMBER = "R2"
+LINE_NUMBER = "143"
 REFRESH_INTERVAL = 5  # seconds
 MAP_FILENAME = "bus_map.html"
 AUTO_OPEN_ONCE = True
