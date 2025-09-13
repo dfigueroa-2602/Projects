@@ -24,17 +24,67 @@
 #include "globals.h"
 #include "Utils.h"
 
-#include "app.hpp"
-
-// button/encoder handlers passed as function pointers
-uint8_t simpleEvent(uint8_t event, uint8_t pin);
-uint8_t volumeEvent(uint8_t event, uint8_t pin);
-uint8_t stepEvent(uint8_t event, uint8_t pin);
-uint8_t agcEvent(uint8_t event, uint8_t pin);
-
+void showStatus(bool cleanFreq = false);
+void applyBandConfiguration(bool extraSSBReset = false);
 
 void showStatus(bool cleanFreq = false);
 void applyBandConfiguration(bool extraSSBReset = false);
+void saveAllReceiverInformation();
+void readAllReceiverInformation();
+void rotaryEncoder();
+void bandSwitch(bool up);
+void loadSSBPatch();
+void showBandTag();
+void showModulation();
+void showStep();
+void showBandwidth();
+void showCharge(bool forceShow);
+void showVolume();
+void agcSetFunc();
+void updateBFO();
+void showFrequency(bool cleanDisplay = false);
+void showFrequencySeek(uint16_t freq);
+void doSeek();
+void updateLowerDisplayLine();
+void SettingParamToUI(char* buf, uint8_t idx);
+void DrawSetting(uint8_t idx, bool full);
+void showSettings();
+void showSettingsTitle();
+void switchSettingsPage();
+void switchSettings();
+void showSMeter();
+void resetEepromDelay();
+void updateSSBCutoffFilter();
+void doStep(int8_t v);
+void doVolume(int8_t v);
+void doSwitchLogic(int8_t& param, int8_t low, int8_t high, int8_t step);
+void doAttenuation(int8_t v);
+void doSoftMute(int8_t v);
+void doBrightness(int8_t v);
+void doSSBAVC(int8_t v = 0);
+void doAvc(int8_t v);
+void doSync(int8_t v = 0);
+void doDeEmp(int8_t v = 0);
+void doSWUnits(int8_t v = 0);
+void doSSBSoftMuteMode(int8_t v = 0);
+void doCutoffFilter(int8_t v);
+void doCPUSpeed(int8_t v = 0);
+void doBFOCalibration(int8_t v);
+void doUnitsSwitch(int8_t v);
+void doScanSwitch(int8_t v = 0);
+void doCWSwitch(int8_t v = 0);
+#if USE_RDS
+void doRDSErrorLevel(int8_t v);
+void doRDS();
+void showRDS();
+void setRDSConfig(uint8_t bias);
+#endif
+void doBandwidthLogic(int8_t& bwIndex, uint8_t upperLimit, int8_t v);
+void doBandwidth(uint8_t v);
+void switchCommand(bool* b, void (*showFunction)());
+void resetLowerLine();
+void doFrequencyTune();
+void doFrequencyTuneSSB();
 
 bool isSSB()
 {
@@ -102,10 +152,10 @@ void setup()
     }
     else
     {
-        oledPrint(" ATS-20 RECEIVER", 0, 0, DEFAULT_FONT, true);
-        oledPrint("ATS_EX v1.18", 16, 2);
-        oledPrint("HOLA HOLA 2024", 12, 4);
-        oledPrint("HOLA", 12, 6);
+        oledPrint("ATS-20+ RECEIVER", 0, 0, DEFAULT_FONT, true);
+        oledPrint("I love Magdzia", 16, 2);
+        oledPrint("Boobies!", 12, 4);
+        oledPrint("(.)(.)", 12, 6);
         delay(2000);
     }
     oled.clear();
