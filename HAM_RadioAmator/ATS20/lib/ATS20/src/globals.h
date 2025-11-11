@@ -76,14 +76,14 @@ void doCWSwitch(int8_t v = 0);
 SettingsItem g_Settings[] =
 {
     //Page 1
-    { "ATT", 0,  SettingType::ZeroAuto,     doAttenuation     },  //Attenuation
+    { "ATT", 1,  SettingType::ZeroAuto,     doAttenuation     },  //Attenuation
     { "SM ", 0,  SettingType::Num,          doSoftMute        },  //Soft Mute
     { "SVC", 1,  SettingType::Switch,       doSSBAVC          },  //SSB AVC Switch
     { "Syn", 0,  SettingType::Switch,       doSync            },  //SSB Sync
-    { "DeE", 1,  SettingType::Switch,       doDeEmp           },  //FM DeEmphasis (0 - 50, 1 - 75)
-    { "AVC", 46, SettingType::Num,          doAvc             },  //Automatic Volume Control
+    { "DeE", 0,  SettingType::Switch,       doDeEmp           },  //FM DeEmphasis (0 - 50, 1 - 75)
+    { "AVC", 90, SettingType::Num,          doAvc             },  //Automatic Volume Control
     //Page 2
-    { "Scr", 80, SettingType::Num,          doBrightness      },  //Screen Brightness
+    { "Scr", 5,  SettingType::Num,          doBrightness      },  //Screen Brightness
     { "SW ", 0,  SettingType::Switch,       doSWUnits         },  //SW Units
     { "SSM", 1,  SettingType::Switch,       doSSBSoftMuteMode },  //SSB Soft Mute Mode
     { "COF", 0,  SettingType::SwitchAuto,   doCutoffFilter    },  //SSB Cutoff Filter
@@ -92,7 +92,7 @@ SettingsItem g_Settings[] =
     { "RDS", 1,  SettingType::Num,          doRDSErrorLevel   },  //RDS ErrorLevel
 #endif
     //Page 3
-    { "BFO", 0,  SettingType::Num,          doBFOCalibration  },  //BFO Offset calibration
+    { "BFO", -79,  SettingType::Num,        doBFOCalibration  },  //BFO Offset calibration
     { "Uni", 1,  SettingType::Switch,       doUnitsSwitch     },  //Show/Hide frequency units
     { "Sca", 1,  SettingType::Switch,       doScanSwitch      },  //AM Encoder scan switch
     { "CW ", 0,  SettingType::Switch,       doCWSwitch        },  //CW is LSB or USB

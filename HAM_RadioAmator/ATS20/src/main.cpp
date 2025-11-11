@@ -1,32 +1,17 @@
-// ----------------------------------------------------------------------
-// ATS_EX (Extended) Firmware for ATS-20 and ATS-20+ receivers.
-// Based on PU2CLR sources.
-// Inspired by closed-source swling.ru firmware.
-// For more information check README file in my github repository:
-// http://github.com/goshante/ats20_ats_ex
-// ----------------------------------------------------------------------
-// By Goshante
-// 02.2024
-// http://github.com/goshante
-// ----------------------------------------------------------------------
-
 #include <SI4735.h>
 #include <EEPROM.h>
 #include <Tiny4kOLED.h>
 #include <PixelOperatorBold.h> 
-
 #include "font14x24sevenSeg.h"
 #include "Rotary.h"
 #include "SimpleButton.h"
 #include "patch_ssb_compressed.h"
-
 #include "defs.h"
 #include "globals.h"
 #include "Utils.h"
 
 void showStatus(bool cleanFreq = false);
 void applyBandConfiguration(bool extraSSBReset = false);
-
 void showStatus(bool cleanFreq = false);
 void applyBandConfiguration(bool extraSSBReset = false);
 void saveAllReceiverInformation();
@@ -74,10 +59,10 @@ void doUnitsSwitch(int8_t v);
 void doScanSwitch(int8_t v = 0);
 void doCWSwitch(int8_t v = 0);
 #if USE_RDS
-void doRDSErrorLevel(int8_t v);
-void doRDS();
-void showRDS();
-void setRDSConfig(uint8_t bias);
+    void doRDSErrorLevel(int8_t v);
+    void doRDS();
+    void showRDS();
+    void setRDSConfig(uint8_t bias);
 #endif
 void doBandwidthLogic(int8_t& bwIndex, uint8_t upperLimit, int8_t v);
 void doBandwidth(uint8_t v);
@@ -153,9 +138,8 @@ void setup()
     else
     {
         oledPrint("ATS-20+ RECEIVER", 0, 0, DEFAULT_FONT, true);
-        oledPrint("I love Magdzia", 16, 2);
-        oledPrint("Boobies!", 12, 4);
-        oledPrint("(.)(.)", 12, 6);
+        oledPrint("Dave", 16, 2);
+        oledPrint("CA2DFG", 12, 4);
         delay(2000);
     }
     oled.clear();
@@ -1245,7 +1229,7 @@ void doStep(int8_t v)
 void updateBFO()
 {
     //Actually to move frequency forward you need to move BFO backwards, so just * -1
-    g_si4735.setSSBBfo((g_currentBFO + (g_Settings[SettingsIndex::BFO].param * 10)) * -1);
+    g_si4735.setSSBBfo((g_currentBFO + (g_Settings[SettingsIndex::BFO].param * 50)) * -1);
 }
 
 //Volume control
@@ -1392,7 +1376,7 @@ void doCPUSpeed(int8_t v = 0)
 //Settings: BFO Offset calibration
 void doBFOCalibration(int8_t v)
 {
-    doSwitchLogic(g_Settings[SettingsIndex::BFO].param, -60, 60, v);
+    doSwitchLogic(g_Settings[SettingsIndex::BFO].param, -90, 90, v);
 
     if (isSSB())
     {
@@ -1651,7 +1635,8 @@ void loop()
     {
         if (!frequencyRecentlyUpdated && g_encoderCount == 0)
         {
-            g_si4735.setFrequency(g_currentFrequency);
+            // Add -4 (4 kHz up) to compensate the offset of the AM.
+            g_si4735.setFrequency(g_currentFrequency - 4);
             g_processFreqChange = false;
         }
         else if (frequencyRecentlyUpdated && g_encoderCount != 0)
