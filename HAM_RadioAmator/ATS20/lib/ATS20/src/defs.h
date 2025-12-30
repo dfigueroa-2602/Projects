@@ -1,9 +1,5 @@
 #pragma once
 
-//If you set this def to 0 project will be compiled without RDS 
-//and everything related to RDS will be excluded from build
-#define USE_RDS 1
-
 #define EEPROM_APP_ID				235
 #define EEPROM_DATA_START_ADDRESS	1
 #define EEPROM_VERSION_ADDRESS      1000

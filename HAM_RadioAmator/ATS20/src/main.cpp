@@ -10,67 +10,6 @@
 #include "globals.h"
 #include "Utils.h"
 
-void showStatus(bool cleanFreq = false);
-void applyBandConfiguration(bool extraSSBReset = false);
-void showStatus(bool cleanFreq = false);
-void applyBandConfiguration(bool extraSSBReset = false);
-void saveAllReceiverInformation();
-void readAllReceiverInformation();
-void rotaryEncoder();
-void bandSwitch(bool up);
-void loadSSBPatch();
-void showBandTag();
-void showModulation();
-void showStep();
-void showBandwidth();
-void showCharge(bool forceShow);
-void showVolume();
-void agcSetFunc();
-void updateBFO();
-void showFrequency(bool cleanDisplay = false);
-void showFrequencySeek(uint16_t freq);
-void doSeek();
-void updateLowerDisplayLine();
-void SettingParamToUI(char* buf, uint8_t idx);
-void DrawSetting(uint8_t idx, bool full);
-void showSettings();
-void showSettingsTitle();
-void switchSettingsPage();
-void switchSettings();
-void showSMeter();
-void resetEepromDelay();
-void updateSSBCutoffFilter();
-void doStep(int8_t v);
-void doVolume(int8_t v);
-void doSwitchLogic(int8_t& param, int8_t low, int8_t high, int8_t step);
-void doAttenuation(int8_t v);
-void doSoftMute(int8_t v);
-void doBrightness(int8_t v);
-void doSSBAVC(int8_t v = 0);
-void doAvc(int8_t v);
-void doSync(int8_t v = 0);
-void doDeEmp(int8_t v = 0);
-void doSWUnits(int8_t v = 0);
-void doSSBSoftMuteMode(int8_t v = 0);
-void doCutoffFilter(int8_t v);
-void doCPUSpeed(int8_t v = 0);
-void doBFOCalibration(int8_t v);
-void doUnitsSwitch(int8_t v);
-void doScanSwitch(int8_t v = 0);
-void doCWSwitch(int8_t v = 0);
-#if USE_RDS
-    void doRDSErrorLevel(int8_t v);
-    void doRDS();
-    void showRDS();
-    void setRDSConfig(uint8_t bias);
-#endif
-void doBandwidthLogic(int8_t& bwIndex, uint8_t upperLimit, int8_t v);
-void doBandwidth(uint8_t v);
-void switchCommand(bool* b, void (*showFunction)());
-void resetLowerLine();
-void doFrequencyTune();
-void doFrequencyTuneSSB();
-
 bool isSSB()
 {
     return g_currentMode > AM && g_currentMode < FM;
@@ -486,11 +425,6 @@ void doSeek()
         g_si4735.frequencyUp();
     else
         g_si4735.frequencyDown();
-
-#if USE_RDS
-    if (g_displayRDS)
-        oledPrint(_literal_EmptyLine, 0, 6, DEFAULT_FONT);
-#endif
     g_seekStop = false;
     g_si4735.seekStationProgress(showFrequencySeek, checkStopSeeking, g_seekDirection);
 }
@@ -532,13 +466,12 @@ void SettingParamToUI(char* buf, uint8_t idx)
         }
         else
             convertToChar(buf, param, 3);
-
         break;
 
     case SettingType::Num:
-        convertToChar(buf, abs(param), 3);
-        if (param < 0)
-            buf[0] = '-';
+            convertToChar(buf, abs(param), 3);
+            if (param < 0)
+                buf[0] = '-';
         break;
 
     case SettingType::SwitchAuto:
@@ -726,7 +659,7 @@ void showModulation()
 //Draw current band
 void showBandTag()
 {
-    if (g_sMeterOn || g_displayRDS)
+    if (g_sMeterOn)
         return;
 
     oledPrint((g_currentFrequency >= CB_LIMIT_LOW && g_currentFrequency < CB_LIMIT_HIGH)? "CB" : bandTags[g_bandIndex], 0, 6, DEFAULT_FONT, g_cmdBand && g_currentMode != FM);
@@ -819,7 +752,7 @@ void showCharge(bool forceShow)
         if (il < 3)
             buf[2] = '%';
 
-        if (!g_settingsActive && !g_sMeterOn && !g_displayRDS)
+        if (!g_settingsActive && !g_sMeterOn)
             oledPrint(buf, 102, 6, DEFAULT_FONT);
         lastChargeShow = millis();
         averageSamples = sample;
@@ -828,80 +761,10 @@ void showCharge(bool forceShow)
     averageSamples = (averageSamples + sample) / 2;
 }
 
-#if USE_RDS
-void showRDS()
-{
-    static uint16_t lastUpdatedFreq = 0;
-    static uint32_t lastUpdatedTime = millis();
-    static bool succeed = false;
-
-    if (g_currentMode != FM || !g_displayRDS || g_settingsActive)
-    { 
-        lastUpdatedFreq = 0;
-        g_rdsPrevLen = 0;
-        succeed = false;
-        g_rdsActiveInfo = 0;
-        return;
-    }
-
-    if (millis() - lastUpdatedTime > 300)
-        succeed = false;
-
-    if (lastUpdatedFreq != g_currentFrequency || g_rdsSwitchPressed)
-    {
-        if (g_rdsSwitchPressed)
-        {
-            g_rdsActiveInfo++;
-            if (g_rdsActiveInfo > RDSActiveInfo::ProgramInfo)
-                g_rdsActiveInfo = RDSActiveInfo::StationName;
-        }
-        else
-        {
-            g_rdsActiveInfo = RDSActiveInfo::StationName;
-            succeed = false;
-        }
-        g_rdsPrevLen = 0;
-        oledPrint(_literal_EmptyLine, 0, 6, DEFAULT_FONT);
-    }
-    lastUpdatedFreq = g_currentFrequency;
-
-    if (!succeed)
-        g_si4735.getRdsStatus();
-
-    if (!succeed && g_si4735.getRdsReceived() && g_si4735.getRdsSync() && g_si4735.getNumRdsFifoUsed() > 1)
-    {
-        g_RDSCells[RDSActiveInfo::StationName] = g_si4735.getRdsStationName();
-        g_RDSCells[RDSActiveInfo::StationInfo] = g_si4735.getRdsStationInformation();
-        g_RDSCells[RDSActiveInfo::ProgramInfo] = g_si4735.getRdsProgramInformation();
-        g_RDSCells[RDSActiveInfo::StationInfo][17] = '\0';
-        g_RDSCells[RDSActiveInfo::ProgramInfo][17] = '\0';
-        succeed = true;
-        lastUpdatedTime = millis();
-    }
-    else if (!g_rdsSwitchPressed && succeed)
-        return;
-
-    uint8_t len = strlen8(g_RDSCells[g_rdsActiveInfo]);
-
-    if (len == 0 && !g_rdsSwitchPressed)
-        return;
-
-    oledPrint(g_RDSCells[g_rdsActiveInfo], 0, 6, DEFAULT_FONT);
-    
-    uint8_t toPrint = len == 0 ? 3 : (len < g_rdsPrevLen ? min(g_rdsPrevLen - len, 16 - len) : 0);
-    char printChar = len == 0 ? '.' : ' ';
-    for (uint8_t i = 0; i < toPrint; i++) 
-        oled.print(printChar);
-
-    g_rdsPrevLen = len;
-    g_rdsSwitchPressed = false;
-}
-#endif
-
 //Draw steps (with units)
 void showStep()
 {
-    if (g_sMeterOn || g_displayRDS)
+    if (g_sMeterOn)
         return;
 
     char buf[5];
@@ -1050,15 +913,6 @@ void bandSwitch(bool up)
             g_sMeterOn = false;
             oledPrint(_literal_EmptyLine, 0, 6, DEFAULT_FONT);
         }
-
-#if USE_RDS
-        if (g_displayRDS && g_currentMode != FM)
-        {
-            g_displayRDS = false;
-            oledPrint(_literal_EmptyLine, 0, 6, DEFAULT_FONT);
-        }
-#endif
-
         g_currentBFO = 0;
         if (isSSB())
             updateBFO();
@@ -1084,13 +938,6 @@ void loadSSBPatch()
     g_stepIndex = 0;
 }
 
-#if USE_RDS
-void setRDSConfig(uint8_t bias)
-{
-    g_si4735.setRdsConfig(1, bias, bias, bias, bias);
-}
-#endif
-
 //Update receiver settings after changing band and modulation
 void applyBandConfiguration(bool extraSSBReset = false)
 {
@@ -1105,9 +952,6 @@ void applyBandConfiguration(bool extraSSBReset = false)
         g_si4735.setSeekFmLimits(g_bandList[g_bandIndex].minimumFreq, g_bandList[g_bandIndex].maximumFreq);
         g_si4735.setSeekFmSpacing(1);
         g_ssbLoaded = false;
-#if USE_RDS
-        setRDSConfig(g_Settings[SettingsIndex::RDSError].param);
-#endif
         g_si4735.setFifoCount(1);
         g_bwIndexFM = g_bandList[g_bandIndex].bandwidthIdx;
         g_si4735.setFmBandwidth(g_bwIndexFM);
@@ -1229,7 +1073,7 @@ void doStep(int8_t v)
 void updateBFO()
 {
     //Actually to move frequency forward you need to move BFO backwards, so just * -1
-    g_si4735.setSSBBfo((g_currentBFO + (g_Settings[SettingsIndex::BFO].param * 50)) * -1);
+    g_si4735.setSSBBfo((g_currentBFO + (g_Settings[SettingsIndex::BFO].param * 200)) * -1);
 }
 
 //Volume control
@@ -1376,13 +1220,10 @@ void doCPUSpeed(int8_t v = 0)
 //Settings: BFO Offset calibration
 void doBFOCalibration(int8_t v)
 {
-    doSwitchLogic(g_Settings[SettingsIndex::BFO].param, -90, 90, v);
+    doSwitchLogic(g_Settings[SettingsIndex::BFO].param, -99, 99, v);
 
     if (isSSB())
     {
-#if USE_RDS
-        setRDSConfig(g_Settings[SettingsIndex::BFO].param);
-#endif
         updateBFO();
     }
 }
@@ -1407,34 +1248,6 @@ void doCWSwitch(int8_t v = 0)
     if (g_currentMode == CW)
         applyBandConfiguration(true);
 }
-
-#if USE_RDS
-//Settings: RDS Error Level
-void doRDSErrorLevel(int8_t v)
-{
-    doSwitchLogic(g_Settings[SettingsIndex::RDSError].param, 0, 3, v);
-
-    if (g_currentMode == FM)
-        setRDSConfig(g_Settings[SettingsIndex::RDSError].param);
-}
-
-
-void doRDS()
-{
-    g_displayRDS = !g_displayRDS;
-
-    if (g_displayRDS)
-    {
-        g_sMeterOn = false;
-        oledPrint(_literal_EmptyLine, 0, 6, DEFAULT_FONT);
-        g_si4735.getRdsStatus();
-        showRDS();
-    }
-    else
-        updateLowerDisplayLine();
-}
-#endif
-
 //Prevents repeatable code for flash image size saving
 void doBandwidthLogic(int8_t& bwIndex, uint8_t upperLimit, uint8_t v)
 {
@@ -1552,10 +1365,6 @@ void doFrequencyTune()
     if (g_currentMode == FM)
     {
         g_currentFrequency += g_tabStepFM[g_FMStepIndex] * g_encoderCount; //g_si4735.getFrequency() is too slow
-#if USE_RDS
-        if (g_displayRDS)
-            oledPrint(_literal_EmptyLine, 0, 6, DEFAULT_FONT);
-#endif
     }
     else
         g_currentFrequency += g_tabStep[g_stepIndex] * g_encoderCount;
@@ -1576,10 +1385,9 @@ void doFrequencyTune()
 
 void resetLowerLine()
 {
-    if (g_sMeterOn || g_displayRDS)
+    if (g_sMeterOn)
     {
         g_sMeterOn = false;
-        g_displayRDS = false;
         updateLowerDisplayLine();
     }
 }
@@ -1649,10 +1457,6 @@ void loop()
     
     if (millis() - g_lastFreqChange >= 1000)
     {
-#if USE_RDS
-        showRDS();
-#endif
-
         if (g_sMeterOn && !g_settingsActive)
             showSMeter();
 
@@ -1804,8 +1608,6 @@ void loop()
             g_SettingEditing = !g_SettingEditing;
             DrawSetting(g_SettingSelected, true);
         }
-        else if (g_displayRDS)
-            g_rdsSwitchPressed = true;
         else if (isSSB() || g_Settings[SettingsIndex::ScanSwitch].param == 0)
         {
             if (!g_settingsActive)
@@ -1859,7 +1661,6 @@ void loop()
             g_sMeterOn = !g_sMeterOn;
             if (g_sMeterOn)
             {
-                g_displayRDS = false;
                 showSMeter();
             }
             else
@@ -1907,10 +1708,6 @@ void loop()
                 g_bandList[g_bandIndex].currentStepIdx = g_stepIndex;
                 applyBandConfiguration();
             }
-#if USE_RDS
-            else
-                doRDS();
-#endif
         }
     }
 

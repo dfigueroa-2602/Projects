@@ -1,11 +1,65 @@
 #pragma once
 
+void showStatus(bool cleanFreq = false);
+void applyBandConfiguration(bool extraSSBReset = false);
+void showStatus(bool cleanFreq = false);
+void applyBandConfiguration(bool extraSSBReset = false);
+void saveAllReceiverInformation();
+void readAllReceiverInformation();
+void rotaryEncoder();
+void bandSwitch(bool up);
+void loadSSBPatch();
+void showBandTag();
+void showModulation();
+void showStep();
+void showBandwidth();
+void showCharge(bool forceShow);
+void showVolume();
+void agcSetFunc();
+void updateBFO();
+void showFrequency(bool cleanDisplay = false);
+void showFrequencySeek(uint16_t freq);
+void doSeek();
+void updateLowerDisplayLine();
+void SettingParamToUI(char* buf, uint8_t idx);
+void DrawSetting(uint8_t idx, bool full);
+void showSettings();
+void showSettingsTitle();
+void switchSettingsPage();
+void switchSettings();
+void showSMeter();
+void resetEepromDelay();
+void updateSSBCutoffFilter();
+void doStep(int8_t v);
+void doVolume(int8_t v);
+void doSwitchLogic(int8_t& param, int8_t low, int8_t high, int8_t step);
+void doAttenuation(int8_t v);
+void doSoftMute(int8_t v);
+void doBrightness(int8_t v);
+void doSSBAVC(int8_t v = 0);
+void doAvc(int8_t v);
+void doSync(int8_t v = 0);
+void doDeEmp(int8_t v = 0);
+void doSWUnits(int8_t v = 0);
+void doSSBSoftMuteMode(int8_t v = 0);
+void doCutoffFilter(int8_t v);
+void doCPUSpeed(int8_t v = 0);
+void doBFOCalibration(int8_t v);
+void doUnitsSwitch(int8_t v);
+void doScanSwitch(int8_t v = 0);
+void doCWSwitch(int8_t v = 0);
+void doBandwidthLogic(int8_t& bwIndex, uint8_t upperLimit, int8_t v);
+void doBandwidth(uint8_t v);
+void switchCommand(bool* b, void (*showFunction)());
+void resetLowerLine();
+void doFrequencyTune();
+void doFrequencyTuneSSB();
+
 long g_storeTime = millis();
 
 bool g_voltagePinConnnected = false;
 bool g_ssbLoaded = false;
 bool g_fmStereo = true;
-
 bool g_cmdVolume = false;
 bool g_cmdStep = false;
 bool g_cmdBw = false;
@@ -13,8 +67,6 @@ bool g_cmdBand = false;
 bool g_settingsActive = false;
 bool g_sMeterOn = false;
 bool g_displayOn = true;
-bool g_displayRDS = false;
-bool g_rdsSwitchPressed = false;
 bool g_seekStop = false;
 uint32_t g_lastAdjustmentTime = 0;
 
@@ -54,25 +106,6 @@ struct SettingsItem
     void (*manipulateCallback)(int8_t);
 };
 
-void doAttenuation(int8_t v);
-void doSoftMute(int8_t v);
-void doBrightness(int8_t v);
-void doSSBAVC(int8_t v = 0);
-void doAvc(int8_t v);
-void doSync(int8_t v = 0);
-void doDeEmp(int8_t v = 0);
-void doSWUnits(int8_t v = 0);
-void doSSBSoftMuteMode(int8_t v = 0);
-void doCutoffFilter(int8_t v);
-void doCPUSpeed(int8_t v = 0);
-#if USE_RDS
-void doRDSErrorLevel(int8_t v);
-#endif
-void doBFOCalibration(int8_t v);
-void doUnitsSwitch(int8_t v = 0);
-void doScanSwitch(int8_t v = 0);
-void doCWSwitch(int8_t v = 0);
-
 SettingsItem g_Settings[] =
 {
     //Page 1
@@ -88,9 +121,6 @@ SettingsItem g_Settings[] =
     { "SSM", 1,  SettingType::Switch,       doSSBSoftMuteMode },  //SSB Soft Mute Mode
     { "COF", 0,  SettingType::SwitchAuto,   doCutoffFilter    },  //SSB Cutoff Filter
     { "CPU", 0,  SettingType::Switch,       doCPUSpeed        },  //CPU Frequency
-#if USE_RDS
-    { "RDS", 1,  SettingType::Num,          doRDSErrorLevel   },  //RDS ErrorLevel
-#endif
     //Page 3
     { "BFO", -79,  SettingType::Num,        doBFOCalibration  },  //BFO Offset calibration
     { "Uni", 1,  SettingType::Switch,       doUnitsSwitch     },  //Show/Hide frequency units
@@ -111,9 +141,6 @@ enum SettingsIndex
     SSM,
     CutoffFilter,
     CPUSpeed,
-#if USE_RDS
-    RDSError,
-#endif
     BFO,
     UnitsSwitch,
     ScanSwitch,
@@ -217,18 +244,6 @@ struct Band
     int8_t currentStepIdx;
     int8_t bandwidthIdx;     // Bandwidth table index (internal table in Si473x controller)
 };
-
-#if USE_RDS
-enum RDSActiveInfo : uint8_t
-{
-    StationName,
-    StationInfo,
-    ProgramInfo
-};
-uint8_t g_rdsActiveInfo = RDSActiveInfo::StationName;
-char g_rdsPrevLen = 0;
-char* g_RDSCells[3];
-#endif
 
 char _literal_EmptyLine[17] = "                ";
 
